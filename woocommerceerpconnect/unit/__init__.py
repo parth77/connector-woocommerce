@@ -21,5 +21,6 @@
 
 from . import import_synchronizer
 from . import backend_adapter
+from . import export_synchronizer
 from . import mapper
 from . import binder

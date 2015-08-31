@@ -34,6 +34,13 @@ class wc_backend(models.Model):
     _name = 'wc.backend'
     _inherit = 'connector.backend'
     _description = 'WooCommerce Backend Configuration'
+
+    @api.model
+    def _get_stock_field_id(self):
+        field = self.env['ir.model.fields'].search(
+            [('model', '=', 'product.product'),
+             ('name', '=', 'virtual_available')], limit=1)
+        return field
     name = fields.Char(string='name')
     _backend_type = 'woo'
     location = fields.Char("Url")
@@ -48,6 +55,15 @@ class wc_backend(models.Model):
              "will be imported in the translation of this language.\n"
              "Note that a similar configuration exists "
              "for each storeview.",
+    )
+    product_stock_field_id = fields.Many2one(
+        comodel_name='ir.model.fields', string='Stock Field',
+        default=_get_stock_field_id,
+        domain="[('model', 'in', ['product.product', 'product.template']),"
+               " ('ttype', '=', 'float')]",
+        help="Choose the field of the product which will be used for "
+             "stock inventory updates.\nIf empty, Quantity Available "
+             "is used.",
     )
 
     @api.multi
@@ -189,4 +205,19 @@ class wc_backend(models.Model):
         """ Import Orders from all websites """
         for backend in self:
             backend.import_order()
+        return True
+
+    @api.multi
+    def _domain_for_update_product_stock_qty(self):
+        return [
+            ('backend_id', 'in', self.ids),
+            ('type', '!=', 'service'),
+        ]
+
+    @api.multi
+    def update_product_stock_qty(self):
+        mag_product_obj = self.env['woo.product.product']
+        domain = self._domain_for_update_product_stock_qty()
+        woo_products = mag_product_obj.search(domain)
+        woo_products.recompute_woo_qty()
         return True

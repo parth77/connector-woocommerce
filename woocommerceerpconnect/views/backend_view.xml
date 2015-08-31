@@ -38,6 +38,8 @@
 							<field name="verify_ssl" />
 							<field name="default_lang_id" />
 						</group>
+                                                <notebook colspan="4">
+                                                    <page string="Import Data">
 						<group>
 							<label string="Import category" class="oe_inline" />
 							<button name="import_categories" type="object" class="oe_highlight"
@@ -60,6 +62,22 @@
                             <button name="import_orders" type="object" class="oe_highlight"
                                 string="Import in background" />
                         </group>
+                        </page>
+                        <page string="Export Data">
+                            <group>
+                                <label string="Update all the products stock quantities" class="oe_inline" />
+                                <button name="update_product_stock_qty" type="object" class="oe_highlight"
+                                    string="Update" />
+                            </group>
+                        </page>
+                        <page name="advanced_configuration" string="Advanced Configuration">
+                            <group>
+                                <field name="product_stock_field_id"
+                                    widget="selection"
+                                    domain="[('model', 'in', ['product.product', 'product.template']), ('ttype', '=', 'float')]"/>
+                            </group>
+                        </page>
+                    </notebook>
 					</sheet>
 				</form>
 			</field>

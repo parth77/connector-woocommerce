@@ -135,28 +135,41 @@ class WooCRUDAdapter(CRUDAdapter):
                       consumer_key=self.woo.consumer_key,
                       consumer_secret=self.woo.consumer_secret,
                       version='v2')
-            if api:
-                if isinstance(arguments, list):
-                    while arguments and arguments[-1] is None:
-                        arguments.pop()
-                start = datetime.now()
-                try:
-                    if 'false' or 'true' or 'null'in api.get(method).content:
-                        result = api.get(method).content.replace(
-                            'false', 'False')
-                        result = result.replace('true', 'True')
-                        result = result.replace('null', 'False')
-                        result = eval(result)
+            if method == 'product_qty_update':
+                if api:
+                    api_method = 'products/' + str(arguments[0])
+                    result_dict = {
+                        "product": {
+                            'stock_quantity': arguments[1]['qty']
+                        }
+                    }
+                    api.post(api_method, result_dict)
+            else:
+                if api:
+                    if isinstance(arguments, list):
+                        while arguments and arguments[-1] is None:
+                            arguments.pop()
+                    start = datetime.now()
+                    try:
+                        if 'false' or 'true' or 'null' \
+                           in api.get(method).content:
+                            result = api.get(method).content.replace(
+                                'false', 'False')
+                            result = result.replace('true', 'True')
+                            result = result.replace('null', 'False')
+                            result = eval(result)
+                        else:
+                            result = eval(api.get(method).content)
+                    except:
+                        _logger.error("api.call(%s, %s) failed",
+                                      method, arguments)
+                        raise
                     else:
-                        result = eval(api.get(method).content)
-                except:
-                    _logger.error("api.call(%s, %s) failed", method, arguments)
-                    raise
-                else:
-                    _logger.debug("api.call(%s, %s) returned %s in %s seconds",
-                                  method, arguments, result,
-                                  (datetime.now() - start).seconds)
-                return result
+                        _logger.debug("api.call(%s, %s) returned %s \
+                                      in %s seconds",
+                                      method, arguments, result,
+                                      (datetime.now() - start).seconds)
+                    return result
         except (socket.gaierror, socket.error, socket.timeout) as err:
             raise NetworkRetryableError(
                 'A network error caused the failure of the job: '
